@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width">
+  <title>JS Bin</title>
+  <link rel='stylesheet' href='https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900|Material+Icons'>
+  <link rel='stylesheet' href='https://cdn.jsdelivr.net/npm/vuetify@1.1.8/dist/vuetify.min.css'>
+</head>
+<body>
+  <div id="app">
+    <v-app id="inspire">
+      <v-container fluid grid-list-md>
+
+        <v-layout row wrap>
+          <v-flex xs12 sm9 my-3 px-3 offset-sm1>
+            <v-progress-linear :indeterminate="true"
+              v-if="loading"></v-progress-linear>
+            <v-text-field
+              v-model="url"
+              label="Url"
+            ></v-text-field>
+            <v-btn @click="updateUrl">Go</v-btn>
+          </v-flex>
+        </v-layout>
+
+        <v-layout row wrap>
+          <v-flex xs12 sm3 my-3 px-3 offset-sm1>
+            <p>Primary tag</p>
+            <v-text-field v-model="primaryTag"></v-text-field>
+          </v-flex>
+          <v-flex xs12 sm3 my-3 px-3>
+            <p>Secondary tag</p>
+          <v-text-field v-model="secondaryTag"></v-text-field>
+          </v-flex>
+          <v-flex xs12 sm3 my-3 px-3>
+            Item tag
+            <v-text-field v-model="itemTag"></v-text-field>
+          </v-flex>
+          <v-flex xs12 sm9 my-3 px-3 xs12 sm9 my-3 px-3 offset-sm1>
+            <v-data-table
+              :items="attributes"
+              class="elevation-1"
+              hide-actions
+              hide-headers
+              class="mt-3"
+            >
+              <template slot="items" slot-scope="props" mt-3>
+                <td><v-text-field v-model="props.item.attribute"></v-text-field></td>
+                <td>{{ props.item.name }}</td>
+                <td
+                  class="text-xs-right"
+                  :class="{ 'red--text': props.item.occurrences < totalItems }">
+                  {{ props.item.occurrences }} / {{ totalItems }}
+                </td>
+              </template>
+            </v-data-table>
+          </v-flex>
+          <v-flex xs12 sm9 my-3 px-3 offset-sm1>
+            <i>* Checks with and without 'g:'</i><br />
+            <i>** Does not validate content</i>
+          </v-flex>
+        </v-layout>
+
+      </v-container>
+    </v-app>
+  </div>
+  <script src='https://cdn.jsdelivr.net/npm/babel-polyfill/dist/polyfill.min.js'></script>
+  <script src='https://cdn.jsdelivr.net/npm/vue/dist/vue.js'></script>
+  <script src='https://cdn.jsdelivr.net/npm/vuetify@1.1.8/dist/vuetify.min.js'></script>
+  <script src='https://unpkg.com/axios/dist/axios.min.js'></script>
+  <script>
+    new Vue({
+      el: '#app',
+      data: {
+        url: '',
+        totalItems: 0,
+        loading: false,
+        primaryTag: 'rss',
+        secondaryTag: 'channel',
+        itemTag: 'item',
+        attributes: [
+          {
+            name: 'Id',
+            attribute: 'g:id',
+            occurrences: 0
+          },
+          {
+            name: 'Title',
+            attribute: 'g:title',
+            occurrences: 0
+          },
+          {
+            name: 'Description',
+            attribute: 'g:description',
+            occurrences: 0
+          },
+          {
+            name: 'Link',
+            attribute: 'g:link',
+            occurrences: 0
+          },
+          {
+            name: 'Image link',
+            attribute: 'g:image_link',
+            occurrences: 0
+          },
+          {
+            name: 'Availability',
+            attribute: 'g:availability',
+            occurrences: 0
+          },
+          {
+            name: 'Gtin',
+            attribute: 'g:gtin',
+            occurrences: 0
+          },
+          {
+            name: 'Mpn',
+            attribute: 'g:mpn',
+            occurrences: 0
+          },
+        ]
+      },
+      methods: {
+        async updateUrl () {
+          try {
+            this.loading = true
+            this.resetValues()
+
+            const feedUrl = this.url
+            const response = await axios.get(`https://cors.io/?${feedUrl}`)
+            parser = new DOMParser()
+            xmlDoc = parser.parseFromString(response.data,"text/xml")
+
+            const items = xmlDoc.getElementsByTagName(this.primaryTag)[0]
+              .getElementsByTagName(this.secondaryTag)[0]
+              .getElementsByTagName(this.itemTag)
+
+            const numberOfItems = items.length
+            this.totalItems = numberOfItems
+            for (let i = 0; i < numberOfItems; i++) {
+              // loop through feed items
+              const item = items[i]
+              // loop through defined attributes
+              for (let j = 0; j < this.attributes.length; j++) {
+                const attribute = this.attributes[j].attribute
+                const feedAttribute = item.getElementsByTagName(attribute)[0]
+                const feedAttributeG = item.getElementsByTagName('g:' + attribute)[0]
+                const feedAttributeNoG = item.getElementsByTagName(attribute.substr(2))[0]
+                if (feedAttribute) {
+                  const feedAttributeValue = feedAttribute.innerHTML
+                  if (feedAttributeValue) this.attributes[j].occurrences++
+                } else if (feedAttributeG) {
+                  // found with added g:
+                  const feedAttributeValue = feedAttributeG.innerHTML
+                  if (feedAttributeValue) this.attributes[j].occurrences++
+                } else if (feedAttributeNoG) {
+                  // found with no g:
+                  const feedAttributeValue = feedAttributeNoG.innerHTML
+                  if (feedAttributeValue) this.attributes[j].occurrences++
+                }
+              }
+              this.loading = false
+            }
+          } catch (e) {
+            console.log(e)
+            this.loading = false
+          }
+        },
+        resetValues () {
+          this.totalItems = 0
+          for (let i = 0; i < this.attributes.length; i++) {
+            this.attributes[i].occurrences = 0
+          }
+        }
+      }
+    })
+  </script>
+</body>
+</html>
