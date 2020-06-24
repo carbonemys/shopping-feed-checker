@@ -58,7 +58,8 @@
           </v-flex>
           <v-flex xs12 sm9 my-3 px-3 offset-sm1>
             <i>* Checks with and without 'g:'</i><br />
-            <i>** Does not validate content</i>
+            <i>** Does not validate content</i><br />
+            <i><a href="https://support.google.com/merchants/answer/7052112?hl=nl">Alle productspecificaties</a></i>
           </v-flex>
         </v-layout>
 
@@ -80,43 +81,83 @@
         itemTag: 'item',
         attributes: [
           {
-            name: 'Id',
+            name: 'Id (vereist)',
             attribute: 'g:id',
             occurrences: 0
           },
           {
-            name: 'Title',
+            name: 'Title (vereist)',
             attribute: 'g:title',
             occurrences: 0
           },
           {
-            name: 'Description',
+            name: 'Description (vereist)',
             attribute: 'g:description',
             occurrences: 0
           },
           {
-            name: 'Link',
+            name: 'Link (vereist)',
             attribute: 'g:link',
             occurrences: 0
           },
           {
-            name: 'Image link',
+            name: 'Image link (vereist)',
             attribute: 'g:image_link',
             occurrences: 0
           },
           {
-            name: 'Availability',
+            name: 'Availability (vereist)',
             attribute: 'g:availability',
             occurrences: 0
           },
           {
-            name: 'Gtin',
+            name: 'identifier_exists (vereist voor GTIN producten)',
+            attribute: 'g:identifier_exists',
+            occurrences: 0
+          },
+          {
+            name: 'GTIN (vereist)',
             attribute: 'g:gtin',
             occurrences: 0
           },
           {
-            name: 'Mpn',
+            name: 'Brand (vereist',
+            attribute: 'g:brand',
+            occurrences: 0
+          },
+          {
+            name: 'MPN (vereist als GTIN niet beschikbaar is)',
             attribute: 'g:mpn',
+            occurrences: 0
+          },
+          {
+            name: 'Staat (vereist)',
+            attribute: 'g:condition',
+            occurrences: 0
+          },
+          {
+            name: 'product_detail',
+            attribute: 'g:product_detail',
+            occurrences: 0
+          },
+          {
+            name: 'product_highlight',
+            attribute: 'g:product_highlight',
+            occurrences: 0
+          },
+          {
+            name: 'Kleur',
+            attribute: 'g:color',
+            occurrences: 0
+          },
+          {
+            name: 'Formaat',
+            attribute: 'g:size',
+            occurrences: 0
+          },
+          {
+            name: 'Shipping',
+            attribute: 'g:shipping',
             occurrences: 0
           },
         ]
@@ -128,7 +169,7 @@
             this.resetValues()
 
             const feedUrl = this.url
-            const response = await axios.get(`https://cors.io/?${feedUrl}`)
+            const response = await axios.get(`https://cors-anywhere.herokuapp.com/${feedUrl}`)
             parser = new DOMParser()
             xmlDoc = parser.parseFromString(response.data,"text/xml")
 
